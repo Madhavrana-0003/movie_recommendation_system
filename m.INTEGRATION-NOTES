@@ -1,0 +1,28 @@
+# Wiring Matinee to your existing model
+
+`matinee.html` runs fully standalone right now — it has its own small sample
+dataset and a JS similarity function, so it works with zero setup for demos
+or a viva. Your notebook and CSVs aren't touched.
+
+When you're ready to serve real recommendations from your trained model:
+
+1. Save your fitted similarity matrix and movie list from the notebook
+   (`pickle.dump(...)`) — this is the one new step, and it lives next to
+   your existing `.ipynb`, not inside it.
+2. Add a small `app.py` with Flask that loads those pickles and exposes
+   one route:
+   ```python
+   @app.route("/recommend")
+   def recommend():
+       title = request.args.get("movie")
+       # look up title, return top-5 similar titles + posters as JSON
+       return jsonify(results)
+   ```
+3. In `matinee.html`, replace the body of `getRecommendations()` with a
+   `fetch('/recommend?movie=' + encodeURIComponent(movie.title))` call and
+   render whatever comes back. Everything else — layout, styling,
+   selection state, animations — stays exactly as is.
+4. Serve `matinee.html` from Flask's `templates/` (or `static/`) folder.
+
+That keeps the frontend and the model cleanly separated: you can keep
+improving the recommender in the notebook without ever touching the UI.
